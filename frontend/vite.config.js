@@ -6,13 +6,18 @@ import vueDevTools from 'vite-plugin-vue-devtools'
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [
-    vue(),
-    vueDevTools(),
-  ],
+  server: {
+    host: true, // Allows access from your local network
+    port: 5173, // Specify the port (default: 5173)
+    open: true, // Open the browser automatically
+  },
+  plugins: [vue(), vueDevTools()],
+  css: {
+    postcss: './postcss.config.js',
+  },
   resolve: {
     alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url))
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
 })
