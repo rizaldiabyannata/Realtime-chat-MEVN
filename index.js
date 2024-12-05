@@ -37,14 +37,34 @@ io.on("connection", (socket) => {
   console.log("A user connected");
 
   socket.on("join_channel", async (channel) => {
+    // Tinggalkan semua channel sebelumnya
+    const currentRooms = Array.from(socket.rooms);
+    currentRooms.forEach((room) => {
+      if (room !== socket.id) {
+        socket.leave(room);
+        console.log(`User left channel: ${room}`);
+      }
+    });
+
+    // Gabung ke channel baru
     socket.join(channel);
     console.log(`User joined channel: ${channel}`);
+
+    // Kirim pesan sebelumnya dari channel baru
     try {
       const messages = await Message.find({ channel }).sort({ timestamp: 1 });
       socket.emit("previous_messages", messages);
     } catch (error) {
       console.error("Error fetching messages:", error);
     }
+
+    // Konfirmasi channel berubah
+    socket.emit("channel_changed", channel);
+  });
+
+  socket.on("leave_channel", (channel) => {
+    socket.leave(channel);
+    console.log(`User left channel: ${channel}`);
   });
 
   socket.on("chat_message", async (data) => {
@@ -62,6 +82,7 @@ io.on("connection", (socket) => {
     console.log("A user disconnected");
   });
 });
+
 
 // Start server
 const PORT = process.env.PORT || 3000;
