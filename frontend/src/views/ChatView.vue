@@ -1,51 +1,98 @@
 <template>
-    <div class="flex flex-row w-lvw">
-        <!-- Sidebar -->
-        <div class="hidden md:flex md:w-[20%] h-lvh overflow-y-auto bg-teal-200 shadow-black shadow-md">
-            <div class="flex flex-col justify-start items-center h-full w-full px-4 py-6 space-y-4">
-                <div v-for="(ch, index) in channels" :key="index" @click="joinChannel(ch)"
-                    class="border border-gray-300 rounded-md p-4 w-full bg-white hover:[box-shadow:0.5rem_0.5rem_#000] transition-all ease-in-out hover:-translate-y-1 cursor-pointer">
-                    <p class="font-semibold text-lg text-gray-700">{{ ch.name }}</p>
+    <div class="flex flex-col h-screen bg-gradient-to-b from-blue-500 to-indigo-700 text-white">
+        <!-- Header -->
+        <header class="py-4 text-center shadow-md">
+            <h1 class="text-2xl font-extrabold tracking-wide">Simple Chat App</h1>
+        </header>
+
+        <!-- Chat Settings -->
+        <div class="p-4 bg-white text-gray-800 rounded-b-lg shadow-md">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <!-- Username Input -->
+                <div>
+                    <label class="block font-semibold mb-1">Username</label>
+                    <input v-model="username" type="text" placeholder="Enter your username"
+                        class="w-full p-3 border rounded-md shadow focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                </div>
+                <!-- Channel Input -->
+                <div>
+                    <label class="block font-semibold mb-1">Channel</label>
+                    <input v-model="channel" type="text" placeholder="Enter chat channel"
+                        class="w-full p-3 border rounded-md shadow focus:outline-none focus:ring-2 focus:ring-blue-500" />
                 </div>
             </div>
         </div>
 
-        <!-- Chat Section -->
-        <div class="w-full md:w-[80%] bg-gray-50 flex flex-col" :style="{ height: 'calc(var(--vh, 1vh) * 100)' }">
-            <!-- Messages -->
-            <div class="flex-1 overflow-y-auto px-4 py-4">
-                <div class="flex flex-col space-y-4">
-                    <div v-for="(msg, index) in messages" :key="index"
-                        :class="{ 'justify-end': msg.user === this.userId, 'justify-start': msg.user != this.userId }"
-                        class="flex">
-                        <div class="flex flex-col"
-                            :class="{ 'items-end': msg.user === this.userId, 'items-start': msg.user != this.userId }">
-                            <span class="text-xs font-semibold md:text-sm text-gray-500"
-                                :class="{ 'text-end': msg.user === this.userId, 'text-start': msg.user != this.userId }">
-                                {{ msg.user === this.userId ? "You" : msg.username }}
-                            </span>
-                            <div :class="{ 'bg-green-100 text-gray-800': msg.user === this.userId, 'bg-blue-100 text-gray-800': msg.user != this.userId }"
-                                class="p-3 rounded-xl shadow-md">
-                                <p>{{ msg.message }}</p>
-                            </div>
+        <!-- Chat Messages -->
+        <div class="flex-grow p-4 overflow-y-auto bg-gray-100 rounded-t-lg shadow-inner">
+            <div v-for="(msg, index) in messages" :key="index" class="mb-4">
+                <!-- Message Container -->
+                <div :class="[
+                    'flex items-start gap-2 w-full',
+                    msg.username === username ? 'justify-end' : 'justify-start'
+                ]">
+
+                    <div class="flex gap-2" v-if="msg.username === username">
+                        <!-- Message Bubble -->
+                        <div :class="[
+                            'px-4 py-2 rounded-lg max-w-xs',
+                            msg.username === username
+                                ? 'bg-blue-500 text-white self-end'
+                                : 'bg-gray-200 text-gray-800 self-start'
+                        ]">
+                            <p v-if="msg.username !== username" class="text-sm font-semibold text-blue-600">
+                                {{ msg.username }}
+                            </p>
+                            <p>{{ msg.message }}</p>
+                        </div>
+                        <!-- Avatar -->
+                        <div v-if="msg.username !== username || msg.username === username"
+                            class="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">
+                            {{ msg.username[0]?.toUpperCase() }}
+                        </div>
+                    </div>
+                    <div class="flex gap-2" v-else>
+                        <!-- Avatar -->
+                        <div v-if="msg.username !== username || msg.username === username"
+                            class="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">
+                            {{ msg.username[0]?.toUpperCase() }}
+                        </div>
+                        <div :class="[
+                            'px-4 py-2 rounded-lg max-w-xs',
+                            msg.username === username
+                                ? 'bg-blue-500 text-white self-end'
+                                : 'bg-gray-200 text-gray-800 self-start'
+                        ]">
+                            <p v-if="msg.username !== username" class="text-sm font-semibold text-blue-600">
+                                {{ msg.username }}
+                            </p>
+                            <p>{{ msg.message }}</p>
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Input Section -->
-            <div class="fixed md:relative px-4 bottom-3 w-full flex items-center space-x-4">
-                <input v-model="messageInput" @keyup.enter="sendMessage" type="text"
-                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Ketik pesan Anda di sini..." />
+        <!-- Chat Input -->
+        <div class="p-4 bg-white text-gray-800 shadow-md">
+            <div class="flex items-center">
+                <input v-model="messageInput" type="text" placeholder="Type a message"
+                    class="flex-grow p-3 border rounded-l-md shadow focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    @keydown.enter="sendMessage" />
                 <button @click="sendMessage"
-                    class="px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    Kirim
+                    class="bg-blue-600 text-white px-4 py-3 rounded-r-md shadow hover:bg-blue-700 transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+                        <path fill="currentColor"
+                            d="m3.4 20.4l17.45-7.48a1 1 0 0 0 0-1.84L3.4 3.6a.993.993 0 0 0-1.39.91L2 9.12c0 .5.37.93.87.99L17 12L2.87 13.88c-.5.07-.87.5-.87 1l.01 4.61c0 .71.73 1.2 1.39.91" />
+                    </svg>
                 </button>
             </div>
         </div>
     </div>
 </template>
+
+
+
 
 <script>
 import { io } from "socket.io-client";
@@ -88,9 +135,14 @@ export default {
             console.log("Messages after adding new message:", this.messages); // Debug log setelah penambahan pesan
         });
     },
-    async mounted() {
-        await this.fetchUserData();
-        this.fetchUserChannels();
+    watch: {
+        channel(newChannel, oldChannel) {
+            if (this.socket) {
+                this.socket.emit("leave_channel", oldChannel); // Tinggalkan channel lama
+                this.socket.emit("join_channel", newChannel); // Gabung ke channel baru
+                this.messages = []; // Bersihkan pesan lama
+            }
+        },
     },
     methods: {
         adjustViewportHeight() {
@@ -176,9 +228,8 @@ export default {
         sendMessage() {
             if (this.messageInput.trim()) {
                 const messageData = {
-                    channel: this.currentChannel.id,
-                    user: this.userId, // Kirim userId
-                    username: this.user.username,
+                    channel: this.channel,
+                    username: this.username || "Anonymous",
                     message: this.messageInput,
                 };
 
@@ -194,6 +245,10 @@ export default {
     },
     beforeUnmount() {
         window.removeEventListener("resize", this.adjustViewportHeight);
+        if (this.socket) {
+            this.socket.emit("leave_channel", this.channel);
+        }
     },
 };
+
 </script>

@@ -65,7 +65,20 @@ io.on("connection", (socket) => {
 
   // Bergabung dengan channel
   socket.on("join_channel", async (channel) => {
+    // Tinggalkan semua channel sebelumnya
+    const currentRooms = Array.from(socket.rooms);
+    currentRooms.forEach((room) => {
+      if (room !== socket.id) {
+        socket.leave(room);
+        console.log(`User left channel: ${room}`);
+      }
+    });
+
+    // Gabung ke channel baru
     socket.join(channel);
+    console.log(`User joined channel: ${channel}`);
+
+    // Kirim pesan sebelumnya dari channel baru
     try {
       // Ambil pesan yang sudah ada di channel ini
       const messages = await Message.find({ name: channel.name }).sort({
@@ -75,6 +88,14 @@ io.on("connection", (socket) => {
     } catch (error) {
       console.error("Error fetching messages:", error);
     }
+
+    // Konfirmasi channel berubah
+    socket.emit("channel_changed", channel);
+  });
+
+  socket.on("leave_channel", (channel) => {
+    socket.leave(channel);
+    console.log(`User left channel: ${channel}`);
   });
 
   // Menangani pengiriman pesan
@@ -106,8 +127,6 @@ io.on("connection", (socket) => {
   });
 });
 
-// Define routes
-app.use("/api", router);
 
 // Start server
 const PORT = process.env.PORT || 3000;
