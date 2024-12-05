@@ -27,7 +27,7 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
-    origin: "http://10.80.2.227:5173", // Allow only this origin
+    origin: "http://192.168.1.40:5173", // Allow only this origin
     methods: ["GET", "POST"],
     credentials: true, // Allow credentials (cookies)
   },
@@ -35,7 +35,7 @@ const io = socketIo(server, {
 
 // Middleware for CORS
 const corsOptions = {
-  origin: "http://10.80.2.227:5173", // Allow only this origin
+  origin: "http://192.168.1.40:5173", // Allow only this origin
   methods: ["GET", "POST", "PUT", "DELETE"], // Allowed HTTP methods
   credentials: true, // Allow sending cookies with requests
 };
@@ -80,10 +80,12 @@ io.on("connection", (socket) => {
   // Menangani pengiriman pesan
   socket.on("chat_message", async (data) => {
     try {
+      console.log(data);
+
       const { channel, user, message } = data;
       const newMessage = new Message({
-        channel: channel.id,
-        user: user._id,
+        channel: channel,
+        user: user,
         message,
       });
       await newMessage.save();

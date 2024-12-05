@@ -24,7 +24,7 @@
                                 :class="{ 'text-end': msg.user === this.userId, 'text-start': msg.user != this.userId }">
                                 {{ msg.user === this.userId ? "You" : msg.username }}
                             </span>
-                            <div :class="{ 'bg-green-100 text-gray-800': msg.isMyMessage, 'bg-blue-100 text-gray-800': msg.user != this.userId }"
+                            <div :class="{ 'bg-green-100 text-gray-800': msg.user === this.userId, 'bg-blue-100 text-gray-800': msg.user != this.userId }"
                                 class="p-3 rounded-xl shadow-md">
                                 <p>{{ msg.message }}</p>
                             </div>
@@ -68,14 +68,13 @@ export default {
         window.addEventListener("resize", this.adjustViewportHeight);
 
         // Inisialisasi Socket.IO
-        this.socket = io("http://10.80.2.227:3000");
+        this.socket = io("http://192.168.1.40:3000");
 
         // Mendapatkan pesan sebelumnya
         this.socket.on("previous_messages", (messages) => {
             console.log("Fetched previous messages:", messages); // Debug log
             this.messages = messages.map((msg) => ({
                 ...msg,
-                isMyMessage: msg.user && msg.user._id === this.userId, // Bandingkan userId
             }));
             console.log("Processed previous messages:", this.messages); // Debug log setelah proses
         });
@@ -85,7 +84,6 @@ export default {
             console.log("New message received:", data); // Debug log
             this.messages.push({
                 ...data,
-                isMyMessage: data.userId === this.userId, // Bandingkan userId
             });
             console.log("Messages after adding new message:", this.messages); // Debug log setelah penambahan pesan
         });
@@ -101,7 +99,7 @@ export default {
         },
         async fetchUserData() {
             try {
-                const response = await axios.get("http://10.80.2.227:3000/api/auth/get-cookie-data", {
+                const response = await axios.get("http://192.168.1.40:3000/api/auth/get-cookie-data", {
                     withCredentials: true,
                 });
 
@@ -113,7 +111,7 @@ export default {
                 this.userId = userData.data.id; // Simpan ID dari cookie
 
                 const userDataResponse = await axios.get(
-                    `http://10.80.2.227:3000/api/auth/get-user/${userData.data.id}`,
+                    `http://192.168.1.40:3000/api/auth/get-user/${userData.data.id}`,
                     {
                         withCredentials: true,
                     }
@@ -132,7 +130,7 @@ export default {
         async fetchUserChannels() {
             try {
                 console.log("Fetching user channels..."); // Debug log
-                const response = await axios.get("http://10.80.2.227:3000/api/chat/get-channel", {
+                const response = await axios.get("http://192.168.1.40:3000/api/chat/get-channel", {
                     withCredentials: true,
                 });
 
@@ -152,7 +150,7 @@ export default {
             try {
                 console.log("Joining channel:", channel); // Debug log
                 const response = await axios.post(
-                    "http://10.80.2.227:3000/api/chat/access-channel",
+                    "http://192.168.1.40:3000/api/chat/access-channel",
                     { channelId: channel._id },
                     { withCredentials: true }
                 );
@@ -165,7 +163,6 @@ export default {
                 this.currentChannel = response.data.channel;
                 this.messages = response.data.messages.map((msg) => ({
                     ...msg,
-                    isMyMessage: msg.user && msg.user._id === this.userId,                    // Bandingkan userId
                 }));
                 console.log("Messages in current channel:", this.messages); // Debug log
                 console.log("myid : ", this.userId)
@@ -179,8 +176,8 @@ export default {
         sendMessage() {
             if (this.messageInput.trim()) {
                 const messageData = {
-                    channel: this.currentChannel,
-                    userId: this.userId, // Kirim userId
+                    channel: this.currentChannel.id,
+                    user: this.userId, // Kirim userId
                     username: this.user.username,
                     message: this.messageInput,
                 };
@@ -189,7 +186,6 @@ export default {
 
                 this.messages.push({
                     ...messageData,
-                    isMyMessage: true,
                 });
 
                 this.messageInput = "";

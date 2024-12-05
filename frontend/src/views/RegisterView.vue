@@ -52,7 +52,7 @@ export default {
                 this.successMessage = null;
 
                 // Kirim data registrasi ke server
-                const response = await axios.post("http://192.168.1.3:3000/api/auth/register", {
+                const response = await axios.post("http://192.168.1.40:3000/api/auth/register", {
                     username: this.username,
                     email: this.email,
                     password: this.password,

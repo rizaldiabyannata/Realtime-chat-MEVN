@@ -43,7 +43,7 @@ export default {
                 this.errorMessage = null;
 
                 // Mengirim data ke server
-                const response = await axios.post("http://10.80.2.227:3000/api/auth/login", {
+                const response = await axios.post("http://192.168.1.40:3000/api/auth/login", {
                     email: this.email,
                     password: this.password,
                 }, {
