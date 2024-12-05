@@ -1,8 +1,14 @@
 <template>
     <div class="bg-gray-100 flex items-center justify-center h-screen">
         <div id="app" class="w-full max-w-md bg-white rounded-lg shadow-md p-8">
-            <h2 class="text-2xl font-bold mb-6 text-center">Login</h2>
+            <h2 class="text-2xl font-bold mb-6 text-center">Register</h2>
             <form @submit.prevent="handleSubmit">
+                <div class="mb-4">
+                    <label for="username" class="block text-gray-700">Username</label>
+                    <input type="text" id="username" v-model="username"
+                        class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        required>
+                </div>
                 <div class="mb-4">
                     <label for="email" class="block text-gray-700">Email</label>
                     <input type="email" id="email" v-model="email"
@@ -16,10 +22,10 @@
                         required>
                 </div>
                 <button type="submit"
-                    class="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition duration-200">Login</button>
+                    class="w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition duration-200">Register</button>
             </form>
-            <p class="mt-4 text-center text-gray-600">Don't have an account? <a href="/register"
-                    class="text-blue-500 hover:underline">Sign up</a></p>
+            <p class="mt-4 text-center text-gray-600">Already have an account? <a href="/login"
+                    class="text-blue-500 hover:underline">Login</a></p>
         </div>
     </div>
 </template>
@@ -30,10 +36,12 @@ import axios from "axios";
 export default {
     data() {
         return {
+            username: '',
             email: '',
             password: '',
             loading: false,
             errorMessage: null,
+            successMessage: null,
         };
     },
     methods: {
@@ -41,21 +49,24 @@ export default {
             try {
                 this.loading = true;
                 this.errorMessage = null;
+                this.successMessage = null;
 
-                // Mengirim data ke server
-                const response = await axios.post("http://10.80.2.227:3000/api/auth/login", {
+                // Kirim data registrasi ke server
+                const response = await axios.post("http://192.168.1.3:3000/api/auth/register", {
+                    username: this.username,
                     email: this.email,
                     password: this.password,
-                }, {
-                    withCredentials: true, // Untuk mengirim cookie (JWT, dll.)
                 });
 
-                // Jika login berhasil
+                // Jika registrasi berhasil
+                this.successMessage = "Registrasi berhasil! Silakan login.";
                 console.log(response.data);
-                alert("Login berhasil! Selamat datang.");
+                // Reset form
+                this.username = '';
+                this.email = '';
+                this.password = '';
 
-                // Arahkan pengguna ke halaman lain
-                this.$router.push("/chat");
+                this.$router.push("/login");
             } catch (error) {
                 console.error(error);
                 if (error.response && error.response.data) {
